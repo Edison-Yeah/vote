@@ -1,6 +1,9 @@
 package main
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 
 type MemDB struct {
@@ -43,6 +46,9 @@ func (db *MemDB) SetNoLock(key []byte, value []byte) {
 func (db *MemDB) SetNoLockSync(key []byte, value []byte) {
 	key = nonNilBytes(key)
 	value = nonNilBytes(value)
+
+	fmt.Println("final write value:")
+	fmt.Println(value)
 
 	db.db[string(key)] = value
 }
