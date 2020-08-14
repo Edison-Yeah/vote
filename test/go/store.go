@@ -64,17 +64,16 @@ func readDB(context unsafe.Pointer, keyPtr, keySize, valuePtr, valueSize, offset
 
 	realKey := memory[keyPtr: keyPtr + keySize]
 
-	fmt.Printf("read key [%s]\n", string(realKey))
+	//fmt.Printf("read key [%s]\n", string(realKey))
 
 	var size int
 	realValue, exist := store.Get(realKey)
 	if !exist {
-		fmt.Println("no")
 		return -1 // 如果不存在，返回值小于0
 	}
 	size = len(realValue)
 	//fmt.Printf("read value [%s]\n", string(realValue))
-	fmt.Println(realValue)
+	//fmt.Println(realValue)
 
 	if offset >= int32(size) {
 		return 0
@@ -87,6 +86,7 @@ func readDB(context unsafe.Pointer, keyPtr, keySize, valuePtr, valueSize, offset
 
 	copiedData := (realValue)[offset: index]
 	copy(memory[valuePtr:valuePtr+valueSize], copiedData)
+	//fmt.Println("out readDB")
 
 	return int32(size)
 }
@@ -98,11 +98,14 @@ func writeDB(context unsafe.Pointer, keyPtr, keySize, valuePtr, valueSize int32)
 	realKey := memory[keyPtr: keyPtr + keySize]
 	realValue := memory[valuePtr: valuePtr + valueSize]
 
-	fmt.Printf("write key [%s], value [%s]\n", string(realKey), string(realValue))
-	fmt.Println(realValue)
+	//fmt.Printf("write key [%s], value [%s]\n", string(realKey), string(realValue))
+	//fmt.Println(realValue)
+
+	v := make([]byte, len(realValue))
+	copy(v, realValue)
 
 	//store[string(realKey)] = string(realValue)
-	store.Set(realKey, realValue)
+	store.Set(realKey, v)
 }
 
 func deleteDB(context unsafe.Pointer, keyPtr, keySize int32) {

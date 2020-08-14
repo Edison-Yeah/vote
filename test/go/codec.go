@@ -59,6 +59,14 @@ func (sink Sink) Bytes() []byte {
 	return sink.buf.Bytes()
 }
 
+func (sink Sink) WriterBool(b bool) {
+	if b{
+		sink.buf.Write([]byte{1})
+	}else {
+		sink.buf.Write([]byte{0})
+	}
+}
+
 func (sink Sink) ReadBool() (bool, error) {
 	b, err := sink.buf.ReadByte()
 	if err != nil {

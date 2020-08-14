@@ -224,3 +224,7 @@ func panicContract(context unsafe.Pointer, dataPtr, dataSize int32) {
 	data := memory[dataPtr : dataPtr+dataSize]
 	panic("panic: " + string(data))
 }
+
+func getBlockNumber(_ unsafe.Pointer) int64 {
+	return 2
+}

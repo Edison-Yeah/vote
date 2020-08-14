@@ -19,6 +19,7 @@ package main
 // extern void destroy_contract(void*);
 // extern int migrate_contract(void*, int, int, int, int, int, int, int, int, int, int, int, int, int);
 // extern void panic_contract(void*, int, int);
+// extern long long get_block_number(void*);
 import "C"
 import (
 	"fmt"
@@ -60,6 +61,11 @@ func get_invoker(context unsafe.Pointer, invokerPtr int32) {
 //export get_time
 func get_time(context unsafe.Pointer) int64 {
 	return getTime(context)
+}
+
+//export get_block_number
+func get_block_number(context unsafe.Pointer) int64 {
+	return getBlockNumber(context)
 }
 
 //export get_input_length
@@ -145,6 +151,8 @@ func onContract() {
 	_, _ = imports.Append("migrate_contract", migrate_contract, C.migrate_contract)
 	_, _ = imports.Append("panic_contract", panic_contract, C.panic_contract)
 
+	_, _ = imports.Append("get_block_number", get_block_number, C.get_block_number)
+
 	code := getBytes()
 	module, err := wasm.Compile(code)
 	if err != nil {
@@ -163,9 +171,30 @@ func onContract() {
 		fmt.Println(exist)
 		return
 	}
-	_, err = init()
-	if err != nil {
-		panic(err)
+
+	init_params := [][]interface{}{
+		//token address; support_required_pct; min_accept_quorum_pct; vote_persistent_time;
+		//10^16 -> 1%;
+		//2 week = 1209600000;
+		{"0x3422482938473294324238204824323327492323", uint64(600000000000000000), uint64(500000000000000000), uint64(1209600000)},
+	}
+
+	for _, param := range init_params {
+		fmt.Printf("\n==============================\ncall %s\n", "init")
+		inputData[InputDataTypeParam] = serialize(param)
+		func() {
+			defer func() {
+				if err := recover(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+
+			_, err = init()
+			if err != nil {
+				panic(err)
+			}
+
+		}()
 	}
 
 	invoke, exist := instance.Exports["invoke"]
@@ -175,8 +204,10 @@ func onContract() {
 	}
 
 	params := [][]interface{}{
-		{"new_vote"},
-		{"cast_vote"},
+		//voter_address; caste_vote?; executes_if_decided?;
+		{"new_vote", "0x3422482938473294324238204824323327492323", true, true},
+		//voter address; vote_id; supports?; executes_if_decided?;
+		{"cast_vote", "0x329323804203482043170183208028301f830213", uint64(1), true, true},
 	}
 
 	for _, param := range params {
@@ -188,32 +219,15 @@ func onContract() {
 					fmt.Println(err)
 				}
 			}()
-			fmt.Println("store get")
-			key := []byte("test-hh")
-			fmt.Println(store.Get(key))
-			fmt.Println("store get end")
 
-			_, err = invoke(1)
+			_, err = invoke()
 			if err != nil {
 				panic(err)
 			}
 
-			fmt.Println("store get")
-			//key := []byte("test-1")
-			fmt.Println(store.Get(key))
-			fmt.Println("store get end")
 		}()
 	}
-	fmt.Println("store get")
-	key := []byte("test-hh")
-	fmt.Println(store.Get(key))
-	fmt.Println("store get end")
 
-	/*var p int32 = 0
-	_, err = invoke(p)
-	if err != nil {
-		panic(err)
-	}*/
 }
 
 func serialize(raw []interface{}) (res []byte) {
@@ -245,6 +259,8 @@ func serialize(raw []interface{}) (res []byte) {
 
 		//case Address:
 		//	sink.WriteAddress(r)
+		case bool:
+			sink.WriterBool(r)
 
 		default:
 			panic("unexpected type")
