@@ -176,7 +176,7 @@ func onContract() {
 		//token address; support_required_pct; min_accept_quorum_pct; vote_persistent_time;
 		//10^16 -> 1%;
 		//2 week = 1209600000;
-		{"0x3422482938473294324238204824323327492323", uint64(600000000000000000), uint64(500000000000000000), uint64(1209600000)},
+		{"0x3422482938473294324238204824323327492323", uint64(700000000000000000), uint64(500000000000000000), uint64(1209600000)},
 	}
 
 	for _, param := range init_params {
@@ -206,8 +206,13 @@ func onContract() {
 	params := [][]interface{}{
 		//voter_address; caste_vote?; executes_if_decided?;
 		{"new_vote", "0x3422482938473294324238204824323327492323", true, true},
+		//{"new_vote", "0x329323804203482043170183208028301f830213", true, true},
+		//{"new_vote", "0x909323804203482043170183208028301f830874", true, true},
 		//voter address; vote_id; supports?; executes_if_decided?;
 		{"cast_vote", "0x329323804203482043170183208028301f830213", uint64(1), true, true},
+		{"query_vote", uint64(1)},
+		//{"query_public_params"},
+		{"query_votes"},
 	}
 
 	for _, param := range params {
@@ -270,6 +275,31 @@ func serialize(raw []interface{}) (res []byte) {
 	return sink.Bytes()
 }
 
+/*
+type Vote struct {
+	Executed bool  `json:"executed"`
+	StartDate uint64 `json:"start_date"`
+	SnapshotBlock uint64 `json:"snapshot_block"`
+	SupportRequiredPct uint64 `json:"support_required_pct"`
+	MinAcceptQuorumPct uint64 `json:"min_accept_quorum_pct"`
+	Yea uint64 `json:"yea"`
+	Nay uint64 `json:"nay"`
+	VotingPower uint64 `json:"voting_power"`
+}
+*/
+
+
 func main() {
 	onContract()
+/*
+	var str = "{\"0x329323804203482043170183208028301f830213\": 1}"
+	//var v Voter
+	var v1 map[string]uint32
+	err := json.Unmarshal([]byte(str), &v1)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(v1)
+	*/
+
 }
